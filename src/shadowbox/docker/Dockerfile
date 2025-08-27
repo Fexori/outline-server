@@ -29,6 +29,8 @@ STOPSIGNAL SIGKILL
 # safely grab the ip-to-country database.
 RUN apk add --no-cache --upgrade coreutils curl
 
+RUN yarn install --frozen-lockfile && yarn build
+
 COPY . /
 
 RUN /src/shadowbox/scripts/update_mmdb.sh
