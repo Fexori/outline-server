@@ -1,7 +1,7 @@
 # Copyright 2018 The Outline Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
+# You may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #      http://www.apache.org/licenses/LICENSE-2.0
@@ -13,29 +13,28 @@
 # limitations under the License.
 
 ARG NODE_IMAGE
-
 FROM ${NODE_IMAGE}
 ARG VERSION
 
 # Save metadata on the software versions we are using.
 LABEL shadowbox.node_version=16.18.0
-
 LABEL shadowbox.github.release=${VERSION}
 
 # The user management service doesn't quit with SIGTERM.
 STOPSIGNAL SIGKILL
 
-# We use curl to detect the server's public IP. We need to use the --date option in `date` to
-# safely grab the ip-to-country database.
-RUN apk add --no-cache --upgrade coreutils curl
+# Установим системные зависимости
+RUN apk add --no-cache --upgrade coreutils curl bash
 
-RUN yarn install --frozen-lockfile && yarn build
-
-COPY . /
-
-RUN /src/shadowbox/scripts/update_mmdb.sh
-
-# Install shadowbox.
+# Скопировать исходники проекта
+COPY . /opt/outline-server
 WORKDIR /opt/outline-server
 
-CMD ["/cmd.sh"]
+# Установить зависимости Node и собрать проект
+RUN yarn install --frozen-lockfile && yarn build
+
+# Обновление базы GeoIP
+RUN /src/shadowbox/scripts/update_mmdb.sh
+
+# Запуск Shadowbox
+CMD ["/src/shadowbox/docker/cmd.sh"]
